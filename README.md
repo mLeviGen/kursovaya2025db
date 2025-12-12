@@ -1,19 +1,14 @@
-# Cheese IS
+# Cheese Information System (monorepo)
 
-Monorepo:
-- db-postgresql: schema, functions, triggers, views, seed
-- backend-fastapi: API
-- frontend-vite-ts: simple admin UI
+Folders:
+- db-postgresql: PostgreSQL roles, privileges, schema (tables), functions, triggers, views, seed
+- backend-fastapi: FastAPI backend (thin API over DB business logic) — WIP
+- frontend-vite-ts: Vite + TS admin UI — WIP
 
-## Run DB
-cd db-postgresql
-docker compose up -d
+## Requirements
+- Docker + Docker Compose
 
-## Run backend
-cd backend-fastapi
-# create venv, install deps, run uvicorn...
-
-## Run frontend
-cd frontend-vite-ts
-npm i
-npm run dev
+## First run (DB only)
+1) Create env:
+```bash
+cp db-postgresql/.env.example db-postgresql/.env
