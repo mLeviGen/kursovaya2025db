@@ -24,6 +24,7 @@ services:
     volumes:
       - ./db-postgresql/migrations:/sql/migrations:ro
       - ./db-postgresql/views:/sql/views:ro
+      - ./db-postgresql/triggers:/sql/triggers:ro
     entrypoint: ["/bin/bash", "-lc"]
     command: >
       psql "postgresql://$$POSTGRES_USER:$$POSTGRES_PASSWORD@db:5432/$$POSTGRES_DB"

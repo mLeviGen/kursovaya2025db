@@ -84,3 +84,38 @@ REVOKE ALL ON FUNCTION public.create_order(int, varchar, text, jsonb) FROM PUBLI
 GRANT EXECUTE ON FUNCTION public.create_batch(int, varchar, date, real) TO cheese_app;
 GRANT EXECUTE ON FUNCTION public.record_quality_test(int, int, real, real, varchar, varchar) TO cheese_app;
 GRANT EXECUTE ON FUNCTION public.create_order(int, varchar, text, jsonb) TO cheese_app;
+
+-- Процедура: отмена заказа (формально закрывает требование PROCEDURE)
+-- Логика: нельзя отменить уже SHIPPED, можно отменять NEW/PAID.
+CREATE OR REPLACE PROCEDURE public.cancel_order(p_order_id int, p_reason text)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE v_status varchar(15);
+BEGIN
+  SELECT status INTO v_status
+  FROM customer_order
+  WHERE id = p_order_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'order not found: %', p_order_id;
+  END IF;
+
+  IF v_status = 'SHIPPED' THEN
+    RAISE EXCEPTION 'cannot cancel shipped order: %', p_order_id;
+  END IF;
+
+  IF v_status = 'CANCELLED' THEN
+    RETURN;
+  END IF;
+
+  UPDATE customer_order
+  SET status = 'CANCELLED',
+      comments = trim(both from COALESCE(comments, '') || E'\n' || 'CANCEL: ' || COALESCE(p_reason,''))
+  WHERE id = p_order_id;
+END $$;
+
+REVOKE ALL ON PROCEDURE public.cancel_order(int, text) FROM PUBLIC;
+GRANT EXECUTE ON PROCEDURE public.cancel_order(int, text) TO cheese_app;
