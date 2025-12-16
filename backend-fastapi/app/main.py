@@ -8,6 +8,8 @@ from .api.products import router as products_router
 from .api.orders import router as orders_router
 from .api.production import router as production_router
 from .api.quality import router as quality_router
+from .api.supplies import router as supplies_router
+from .api.reports import router as reports_router
 
 
 @asynccontextmanager
@@ -24,3 +26,5 @@ app.include_router(products_router, prefix="/api")
 app.include_router(orders_router, prefix="/api")
 app.include_router(production_router, prefix="/api")
 app.include_router(quality_router, prefix="/api")
+app.include_router(supplies_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")

@@ -13,7 +13,7 @@ class RecordQualityTestIn(BaseModel):
     ph: float | None = Field(default=None, ge=0, le=14)
     moisture_pct: float | None = Field(default=None, ge=0, le=100)
     micro_bio: str | None = None
-    status: str  # PASS/FAIL
+    status: str  
 
 
 @router.post("/quality-tests")
@@ -21,7 +21,16 @@ async def record_quality_test(payload: RecordQualityTestIn, conn: AsyncConnectio
     async with conn.cursor() as cur:
         try:
             await cur.execute(
-                "SELECT public.record_quality_test(%s, %s, %s, %s, %s, %s);",
+                """
+                SELECT public.record_quality_test(
+                    %s::int,
+                    %s::int,
+                    %s::real,
+                    %s::real,
+                    %s::varchar,
+                    %s::varchar
+                );
+                """,
                 (
                     payload.batch_id,
                     payload.inspector_id,
@@ -35,6 +44,7 @@ async def record_quality_test(payload: RecordQualityTestIn, conn: AsyncConnectio
             if row is None:
                 raise RuntimeError("record_quality_test returned no rows")
             test_id = row[0]
+
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 

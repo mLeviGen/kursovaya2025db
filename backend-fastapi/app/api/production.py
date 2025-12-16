@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 from psycopg import AsyncConnection
+from psycopg.rows import dict_row
 
 from ..db import get_conn
 
@@ -10,7 +12,7 @@ router = APIRouter(tags=["production"])
 class CreateBatchIn(BaseModel):
     product_id: int
     code: str
-    prod_date: str  # YYYY-MM-DD
+    prod_date: str  
     qty_kg: float = Field(gt=0)
 
 
@@ -19,14 +21,34 @@ async def create_batch(payload: CreateBatchIn, conn: AsyncConnection = Depends(g
     async with conn.cursor() as cur:
         try:
             await cur.execute(
-                "SELECT public.create_batch(%s, %s, %s::date, %s);",
+                """
+                SELECT public.create_batch(
+                    %s::int,
+                    %s::varchar,
+                    %s::date,
+                    %s::real
+                );
+                """,
                 (payload.product_id, payload.code, payload.prod_date, payload.qty_kg),
             )
             row = await cur.fetchone()
             if row is None:
                 raise RuntimeError("create_batch returned no rows")
             batch_id = row[0]
+
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
     return {"batch_id": batch_id}
+
+
+@router.get("/batches")
+async def list_batches(
+    limit: int = 100,
+    offset: int = 0,
+    conn: AsyncConnection = Depends(get_conn),
+):
+    async with conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute("SELECT * FROM public.batches_quality_view LIMIT %s OFFSET %s;", (limit, offset))
+        rows = await cur.fetchall()
+    return jsonable_encoder(rows)
