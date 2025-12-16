@@ -4,7 +4,7 @@ services:
     container_name: cheese-db
     env_file: ./db-postgresql/.env
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5433}:5433"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db-postgresql/init:/docker-entrypoint-initdb.d:ro
