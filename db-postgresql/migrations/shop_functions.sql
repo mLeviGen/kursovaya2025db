@@ -19,7 +19,6 @@ BEGIN
   END IF;
 END $$;
 
--- Заказ от лица клиента (без серверной корзины)
 CREATE OR REPLACE FUNCTION public.place_order(
   p_user_id int,
   p_channel varchar,
@@ -45,7 +44,6 @@ BEGIN
     RAISE EXCEPTION 'User is not a customer or inactive';
   END IF;
 
-  -- твоя существующая функция:
   v_order_id := public.create_order(v_customer_id, 'NEW', p_comments, p_items);
 
   UPDATE customer_order

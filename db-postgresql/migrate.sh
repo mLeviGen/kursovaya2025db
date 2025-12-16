@@ -11,6 +11,7 @@ echo "Starting migration..."
 psql -h db -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 \
   -f /sql/migrations/tables.sql \
   -f /sql/migrations/functions.sql \
+  -f /sql/migrations/procedures_extra.sql \
   -f /sql/migrations/views.sql \
   -f /sql/migrations/triggers.sql \
   -f /sql/migrations/shop_tables.sql \

@@ -21,4 +21,6 @@ ALTER TABLE customer_order
   ADD COLUMN IF NOT EXISTS channel varchar(10) NOT NULL DEFAULT 'B2C'
     CHECK (channel IN ('B2C','B2B')),
   ADD COLUMN IF NOT EXISTS created_by_user_id int REFERENCES auth_user(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS total_amount numeric(12,2) NOT NULL DEFAULT 0 CHECK (total_amount >= 0),
   ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
