@@ -1,5 +1,3 @@
--- Чтобы можно было прогонять повторно при разработке:
--- (в проде лучше миграции без DROP, но для курсовой ок)
 DROP TABLE IF EXISTS quality_test CASCADE;
 DROP TABLE IF EXISTS batch CASCADE;
 DROP TABLE IF EXISTS recipe_ingredient CASCADE;
@@ -14,7 +12,6 @@ DROP TABLE IF EXISTS supplier CASCADE;
 DROP TABLE IF EXISTS employee CASCADE;
 DROP TABLE IF EXISTS role CASCADE;
 
--- справочник ролей сотрудников (не Postgres role)
 CREATE TABLE role (
   id        int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name      varchar(30) NOT NULL UNIQUE
@@ -130,7 +127,6 @@ CREATE TABLE order_item (
   PRIMARY KEY (order_id, product_id)
 );
 
--- индексы (чтобы витрины и фильтры летали)
 CREATE INDEX idx_customer_order_date ON customer_order(order_date);
 CREATE INDEX idx_order_item_product ON order_item(product_id);
 CREATE INDEX idx_batch_product ON batch(product_id);

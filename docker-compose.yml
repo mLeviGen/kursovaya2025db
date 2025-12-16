@@ -20,14 +20,14 @@ services:
       db:
         condition: service_healthy
     env_file: ./db-postgresql/.env
-    entrypoint: ["/bin/bash", "-lc"]
-    command: "bash /sql/migrate.sh"
+    entrypoint: ["/bin/bash", "/sql/migrate.sh"]
     volumes:
       - ./db-postgresql/migrate.sh:/sql/migrate.sh:ro
       - ./db-postgresql/migrations:/sql/migrations:ro
       - ./db-postgresql/views:/sql/views:ro
       - ./db-postgresql/triggers:/sql/triggers:ro
     restart: "no"
+
 
 volumes:
   pgdata:

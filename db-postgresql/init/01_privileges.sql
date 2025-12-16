@@ -15,10 +15,8 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO cheese_readonly;
 -- readwrite
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO cheese_readwrite;
 
--- приложению прямой доступ к таблицам не нужен (логика через функции)
 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM cheese_app;
 
--- на будущее (новые таблицы)
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT SELECT ON TABLES TO cheese_readonly;
 

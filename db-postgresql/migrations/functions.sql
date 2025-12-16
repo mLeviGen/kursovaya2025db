@@ -1,4 +1,3 @@
--- Создание партии (best_before поставит триггер)
 CREATE OR REPLACE FUNCTION public.create_batch(
   p_product_id int,
   p_code varchar,
@@ -18,7 +17,6 @@ BEGIN
   RETURN v_batch_id;
 END $$;
 
--- Запись теста качества (статус партии обновит триггер)
 CREATE OR REPLACE FUNCTION public.record_quality_test(
   p_batch_id int,
   p_inspector_id int,
@@ -40,7 +38,6 @@ BEGIN
   RETURN v_test_id;
 END $$;
 
--- Создание заказа одним вызовом (items: [{"product_id":1,"qty":2}, ...])
 CREATE OR REPLACE FUNCTION public.create_order(
   p_customer_id int,
   p_status varchar,
@@ -76,7 +73,6 @@ BEGIN
   RETURN v_order_id;
 END $$;
 
--- Права: приложению разрешаем только EXECUTE на функции
 REVOKE ALL ON FUNCTION public.create_batch(int, varchar, date, real) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.record_quality_test(int, int, real, real, varchar, varchar) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.create_order(int, varchar, text, jsonb) FROM PUBLIC;
@@ -85,8 +81,6 @@ GRANT EXECUTE ON FUNCTION public.create_batch(int, varchar, date, real) TO chees
 GRANT EXECUTE ON FUNCTION public.record_quality_test(int, int, real, real, varchar, varchar) TO cheese_app;
 GRANT EXECUTE ON FUNCTION public.create_order(int, varchar, text, jsonb) TO cheese_app;
 
--- Процедура: отмена заказа (формально закрывает требование PROCEDURE)
--- Логика: нельзя отменить уже SHIPPED, можно отменять NEW/PAID.
 CREATE OR REPLACE PROCEDURE public.cancel_order(p_order_id int, p_reason text)
 LANGUAGE plpgsql
 SECURITY DEFINER
