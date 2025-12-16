@@ -19,20 +19,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file: ./db-postgresql/.env
-    entrypoint: ["/sql/migrate.sh"]
+    env_file: .env
+    entrypoint: ["/bin/bash", "-lc"]
+    command: "bash /sql/migrate.sh"
     volumes:
+      - ./migrate.sh:/sql/migrate.sh:ro
       - ./migrations:/sql/migrations:ro
       - ./views:/sql/views:ro
       - ./triggers:/sql/triggers:ro
-    command: >
-      psql "postgresql://$$POSTGRES_USER:$$POSTGRES_PASSWORD@db:5432/$$POSTGRES_DB"
-      -v ON_ERROR_STOP=1
-      -f /sql/migrations/tables.sql
-      -f /sql/migrations/functions.sql
-      -f /sql/migrations/triggers.sql
-      -f /sql/migrations/views.sql
-      -f /sql/migrations/seed.sql
+    restart: "no"
 
 volumes:
   pgdata:
