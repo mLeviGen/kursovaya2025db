@@ -16,24 +16,19 @@ services:
 
   migrator:
     image: postgres:16
-    container_name: cheese-db-migrator
     depends_on:
       db:
         condition: service_healthy
     env_file: ./db-postgresql/.env
+    entrypoint: ["/bin/bash"]
+    command: ["/sql/migrate.sh"]
     volumes:
+      - ./db-postgresql/migrate.sh:/sql/migrate.sh:ro  # Mount the script
       - ./db-postgresql/migrations:/sql/migrations:ro
       - ./db-postgresql/views:/sql/views:ro
       - ./db-postgresql/triggers:/sql/triggers:ro
-    entrypoint: ["/bin/bash", "-lc"]
-    command: >
-      psql "postgresql://$$POSTGRES_USER:$$POSTGRES_PASSWORD@db:5432/$$POSTGRES_DB"
-      -v ON_ERROR_STOP=1
-      -f /sql/migrations/tables.sql
-      -f /sql/migrations/functions.sql
-      -f /sql/migrations/triggers.sql
-      -f /sql/migrations/views.sql
-      -f /sql/migrations/seed.sql
+    restart: "no"
+
 
 volumes:
   pgdata:
