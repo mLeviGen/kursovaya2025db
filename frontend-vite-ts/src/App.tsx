@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Link, NavLink, Route, Routes } from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import Orders from "./pages/Orders";
+import Login from "./pages/Login";
+import NotFound from "./pages/NotFound";
+import { RequireAuth } from "./auth/RequireAuth";
+import { useAuth } from "./auth/AuthContext";
 
-function App() {
-  const [count, setCount] = useState(0)
+function TopNav() {
+  const { token, logout } = useAuth();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <header className="topbar">
+      <Link to="/" className="brand">Cheese IS</Link>
+
+      <nav className="nav">
+        <NavLink to="/" end>Главная</NavLink>
+        <NavLink to="/orders">Заказы</NavLink>
+
+        {/* Заготовки под “кнопки таблиц” */}
+        <span className="divider" />
+        <a href="#" className="disabled">Продукты</a>
+        <a href="#" className="disabled">Партии</a>
+        <a href="#" className="disabled">Поставки</a>
+        <a href="#" className="disabled">Отчеты</a>
+      </nav>
+
+      <div className="right">
+        {token ? (
+          <button onClick={logout}>Logout</button>
+        ) : (
+          <NavLink to="/login">Login</NavLink>
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </header>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <>
+      <TopNav />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+
+        <Route element={<RequireAuth />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/orders" element={<Orders />} />
+        </Route>
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+}
