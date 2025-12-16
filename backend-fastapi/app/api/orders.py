@@ -1,8 +1,10 @@
+import json
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from psycopg import AsyncConnection
-import json
+from psycopg.types.json import Jsonb
 
 from ..db import get_conn
 
@@ -16,23 +18,26 @@ class OrderItemIn(BaseModel):
 
 class CreateOrderIn(BaseModel):
     customer_id: int
+    status: str = "NEW"
+    comments: str | None = None
     items: List[OrderItemIn]
 
 
 @router.post("/orders")
 async def create_order(payload: CreateOrderIn, conn: AsyncConnection = Depends(get_conn)):
-    items_json = json.dumps([i.model_dump() for i in payload.items])
+    items = [i.model_dump() for i in payload.items]
 
     async with conn.cursor() as cur:
         try:
             await cur.execute(
-                "SELECT public.create_order(%s, %s::jsonb);",
-                (payload.customer_id, items_json),
+                "SELECT public.create_order(%s, %s, %s, %s);",
+                (payload.customer_id, payload.status, payload.comments, Jsonb(items)),
             )
-            order_id = (await cur.fetchone())[0]
+            row = await cur.fetchone()
+            if row is None:
+                raise RuntimeError("create_order returned no rows")
+            order_id = row[0]
         except Exception as e:
-            # тут можно точнее разбирать ошибки PostgreSQL по pgcode,
-            # но пока достаточно текста
             raise HTTPException(status_code=400, detail=str(e))
 
     return {"order_id": order_id}

@@ -9,10 +9,11 @@ router = APIRouter(tags=["quality"])
 
 class RecordQualityTestIn(BaseModel):
     batch_id: int
-    status: str  # PASS/FAIL
+    inspector_id: int | None = None
     ph: float | None = Field(default=None, ge=0, le=14)
     moisture_pct: float | None = Field(default=None, ge=0, le=100)
-    inspector_id: int | None = None
+    micro_bio: str | None = None
+    status: str  # PASS/FAIL
 
 
 @router.post("/quality-tests")
@@ -20,10 +21,21 @@ async def record_quality_test(payload: RecordQualityTestIn, conn: AsyncConnectio
     async with conn.cursor() as cur:
         try:
             await cur.execute(
-                "SELECT public.record_quality_test(%s, %s, %s, %s, %s);",
-                (payload.batch_id, payload.status, payload.ph, payload.moisture_pct, payload.inspector_id),
+                "SELECT public.record_quality_test(%s, %s, %s, %s, %s, %s);",
+                (
+                    payload.batch_id,
+                    payload.inspector_id,
+                    payload.ph,
+                    payload.moisture_pct,
+                    payload.micro_bio,
+                    payload.status,
+                ),
             )
-            test_id = (await cur.fetchone())[0]
+            row = await cur.fetchone()
+            if row is None:
+                raise RuntimeError("record_quality_test returned no rows")
+            test_id = row[0]
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
+
     return {"test_id": test_id}
