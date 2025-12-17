@@ -4,15 +4,16 @@ services:
     container_name: cheese-db
     env_file: .env
     ports:
-      - "${POSTGRES_PORT:-5433}:5433"
+      - "${POSTGRES_PORT:-5433}:5432" 
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./init:/docker-entrypoint-initdb.d:ro
+      - ./sql/_init/00_init_db.sql:/docker-entrypoint-initdb.d/00_init_db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 3s
       timeout: 3s
-      retries: 30
+      retries: 10
+    restart: always
 
   migrator:
     image: postgres:16
@@ -20,13 +21,10 @@ services:
       db:
         condition: service_healthy
     env_file: .env
-    entrypoint: ["/bin/bash", "-lc"]
-    command: "bash /sql/migrate.sh"
     volumes:
-      - ./migrate.sh:/sql/migrate.sh:ro
-      - ./migrations:/sql/migrations:ro
-      - ./views:/sql/views:ro
-      - ./triggers:/sql/triggers:ro
+      - ./migrate.sh:/migrate.sh
+      - ./sql:/sql
+    entrypoint: ["bash", "/migrate.sh"]
     restart: "no"
 
 volumes:

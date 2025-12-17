@@ -7,12 +7,13 @@ services:
       - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./db-postgresql/init:/docker-entrypoint-initdb.d:ro
+      - ./db-postgresql/sql/_init/00_init_db.sql:/docker-entrypoint-initdb.d/00_init_db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 3s
       timeout: 3s
       retries: 30
+    restart: always
 
   migrator:
     image: postgres:16
@@ -20,14 +21,11 @@ services:
       db:
         condition: service_healthy
     env_file: ./db-postgresql/.env
-    entrypoint: ["/bin/bash", "/sql/migrate.sh"]
+    entrypoint: ["bash", "/migrate.sh"]
     volumes:
-      - ./db-postgresql/migrate.sh:/sql/migrate.sh:ro
-      - ./db-postgresql/migrations:/sql/migrations:ro
-      - ./db-postgresql/views:/sql/views:ro
-      - ./db-postgresql/triggers:/sql/triggers:ro
+      - ./db-postgresql/migrate.sh:/migrate.sh:ro
+      - ./db-postgresql/sql:/sql:ro
     restart: "no"
-
 
 volumes:
   pgdata:
