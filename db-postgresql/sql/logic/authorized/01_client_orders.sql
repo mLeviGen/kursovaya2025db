@@ -1,7 +1,10 @@
 CREATE OR REPLACE FUNCTION authorized.make_order(
     p_items JSONB, 
     p_comments TEXT DEFAULT NULL
-) RETURNS BIGINT SECURITY DEFINER AS $$
+) RETURNS BIGINT
+SECURITY DEFINER
+SET search_path = private, public, authorized
+AS $$
 DECLARE
     v_client_id BIGINT;
     v_order_id BIGINT;
@@ -36,7 +39,10 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION authorized.cancel_my_order(
     p_order_id BIGINT
-) RETURNS VOID SECURITY DEFINER AS $$
+) RETURNS VOID
+SECURITY DEFINER
+SET search_path = private, public, authorized
+AS $$
 DECLARE
     v_client_id BIGINT;
     v_current_status public.order_status;
@@ -68,7 +74,9 @@ RETURNS TABLE (
     total_price NUMERIC,
     created_at TIMESTAMP,
     items JSONB
-) SECURITY DEFINER AS $$
+) SECURITY DEFINER
+SET search_path = private, public, authorized
+AS $$
 BEGIN
     RETURN QUERY
     SELECT 
@@ -76,7 +84,11 @@ BEGIN
         o.status, 
         o.total_price, 
         o.created_at,
-        jsonb_agg(jsonb_build_object('product', p.name, 'qty', oi.qty, 'price', oi.unit_price))
+        COALESCE(
+            jsonb_agg(jsonb_build_object('product', p.name, 'qty', oi.qty, 'price', oi.unit_price))
+            FILTER (WHERE oi.order_id IS NOT NULL),
+            '[]'::jsonb
+        )
     FROM private.orders o
     JOIN private.order_item oi ON oi.order_id = o.id
     JOIN private.product p ON p.id = oi.product_id

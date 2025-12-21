@@ -1,25 +1,25 @@
 CALL admin.register_user(
-    'tech_ivan', 'pass123', 'tech@cheese.local', '+380000000001', 
+    'tech_ivan', 'Pass1234', 'tech@cheese.local', '+380000000001', 
     'Ivan', 'Petrenko', 'technologist'
 );
 
 CALL admin.register_user(
-    'insp_oleh', 'pass123', 'insp@cheese.local', '+380000000002', 
+    'insp_oleh', 'Pass1234', 'insp@cheese.local', '+380000000002', 
     'Oleh', 'Koval', 'inspector'
 );
 
 CALL admin.register_user(
-    'mgr_anna', 'pass123', 'mgr@cheese.local', '+380000000003', 
+    'mgr_anna', 'Pass1234', 'mgr@cheese.local', '+380000000003', 
     'Anna', 'Shevchenko', 'manager'
 );
 
 CALL admin.register_user(
-    'client_petro', 'clientpass', 'c1@cheese.local', '+380444444444', 
+    'client_petro', 'ClientPass1', 'c1@cheese.local', '+380444444444', 
     'Petro', 'Bumaga', 'client'
 );
 
 CALL admin.register_user(
-    'client_iryna', 'clientpass', 'c2@cheese.local', '+380555555555', 
+    'client_iryna', 'ClientPass1', 'c2@cheese.local', '+380555555555', 
     'Iryna', 'Kiyashko', 'client'
 );
 

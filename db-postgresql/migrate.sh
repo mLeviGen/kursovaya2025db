@@ -12,20 +12,8 @@ echo "=========================================="
 echo " Starting Cheese Factory DB Migration"
 echo "=========================================="
 
-run_sql "/sql/00_init/setup.sql"
-
-run_sql "/sql/01_structure/types.sql"
-run_sql "/sql/01_structure/domains.sql"
-run_sql "/sql/01_structure/tables.sql"
-run_sql "/sql/01_structure/views.sql"
-
-run_sql "/sql/02_logic/triggers.sql"
-run_sql "/sql/02_logic/auth.sql"
-run_sql "/sql/02_logic/admin.sql"
-run_sql "/sql/02_logic/client.sql"
-run_sql "/sql/02_logic/staff.sql"
-
-run_sql "/sql/03_data/seed.sql"
+echo "Processing: /sql/run_all.sql"
+psql -h "$HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -f "/sql/run_all.sql"
 
 echo "=========================================="
 echo " Migration completed successfully!"
