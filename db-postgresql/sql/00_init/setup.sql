@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- 1. Очистка (для перезапуска)
 DROP SCHEMA IF EXISTS "private" CASCADE;
 DROP SCHEMA IF EXISTS "admin" CASCADE;
@@ -92,3 +93,4 @@ GRANT EXECUTE ON ALL PROCEDURES IN SCHEMA "public" TO "guest", "client", "employ
 -- 5. Технический пользователь
 CREATE USER "cheese_guest" WITH PASSWORD 'guest_pass';
 GRANT "guest" TO "cheese_guest";
+
