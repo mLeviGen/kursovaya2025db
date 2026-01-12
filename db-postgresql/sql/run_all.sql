@@ -5,8 +5,6 @@
 \ir init/01_roles_and_schemas.sql
 
 \echo '== pre-structure utils =='
--- These helpers are referenced by CHECK constraints inside tables (e.g., check_email/check_tel)
--- so they must exist before \ir structure/02_tables.sql.
 \ir logic/public/01_utils.sql
 
 \echo '== structure =='
