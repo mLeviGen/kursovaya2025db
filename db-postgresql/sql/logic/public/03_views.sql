@@ -34,6 +34,24 @@ JOIN private.product p ON p.id = b.product_id;
 GRANT SELECT ON public.batches_view TO "employee", "admin";
 
 
+-- Партии для публичного каталога: только выпущенные в продажу (released)
+CREATE OR REPLACE VIEW public.batches_public_view AS
+SELECT
+    b.id,
+    b.code,
+    p.name AS product_name,
+    b.status,
+    b.prod_date,
+    b.best_before,
+    b.qty_kg
+FROM private.batch b
+JOIN private.product p ON p.id = b.product_id
+WHERE b.status = 'released'
+ORDER BY b.prod_date DESC, b.id DESC;
+
+GRANT SELECT ON public.batches_public_view TO "guest", "client", "employee", "admin";
+
+
 -- Заказы (обобщённый вид для сотрудников/админов)
 CREATE OR REPLACE VIEW public.orders_view AS
 SELECT
@@ -47,6 +65,7 @@ SELECT
     COALESCE(
         jsonb_agg(
             jsonb_build_object(
+                'product_id', p.id,
                 'product', p.name,
                 'qty', oi.qty,
                 'unit_price', oi.unit_price

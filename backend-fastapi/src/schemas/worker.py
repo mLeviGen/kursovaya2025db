@@ -27,3 +27,13 @@ class UpsertSupplySchema(BaseModel):
     unit: str = Field(min_length=1, max_length=32)
     cost_numeric: float = Field(gt=0)
     lead_time_days: int = Field(ge=0)
+
+
+class UpdateSupplyTermsSchema(BaseModel):
+    cost_numeric: float | None = Field(default=None, gt=0)
+    lead_time_days: int | None = Field(default=None, ge=0)
+
+    def model_post_init(self, __context):
+        # Must update at least one field
+        if self.cost_numeric is None and self.lead_time_days is None:
+            raise ValueError("Provide at least one of: cost_numeric, lead_time_days")

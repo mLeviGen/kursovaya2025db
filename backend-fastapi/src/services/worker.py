@@ -72,7 +72,7 @@ class WorkerService:
     def get_quality_tests(login: str, batch_code: str):
         db = DatabaseController()
         return db.execute(
-            "SELECT * FROM workers.get_quality_tests(%s) ORDER BY created_at DESC",
+            "SELECT * FROM workers.get_quality_tests(%s)",
             params=[batch_code],
             executor_username=login,
             fetch_count=-1,
@@ -95,6 +95,17 @@ class WorkerService:
         return db.execute(
             "SELECT workers.upsert_supply(%s, %s, %s, %s, %s) AS supply_id",
             params=[supplier_name, raw_material_name, unit, cost_numeric, lead_time_days],
+            executor_username=login,
+            fetch_count=1,
+            require_session=True,
+        )
+
+    @staticmethod
+    def update_supply_terms(login: str, supply_id: int, cost_numeric: float | None, lead_time_days: int | None):
+        db = DatabaseController()
+        return db.execute(
+            "SELECT workers.update_supply_terms(%s, %s, %s) AS supply_id",
+            params=[supply_id, cost_numeric, lead_time_days],
             executor_username=login,
             fetch_count=1,
             require_session=True,

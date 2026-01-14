@@ -18,7 +18,7 @@ class AdminService:
     def clients_stats(login: str):
         db = DatabaseController()
         return db.execute(
-            "SELECT * FROM admin.clients_stats_view ORDER BY total_spent DESC NULLS LAST",
+            "SELECT * FROM admin.clients_stats_view ORDER BY total_spent_money DESC NULLS LAST",
             executor_username=login,
             fetch_count=-1,
             require_session=True,
@@ -38,7 +38,7 @@ class AdminService:
     def production_stats(login: str):
         db = DatabaseController()
         return db.execute(
-            "SELECT * FROM admin.production_stats_view ORDER BY prod_date DESC",
+            "SELECT * FROM admin.production_stats_view ORDER BY total_kg_produced DESC NULLS LAST",
             executor_username=login,
             fetch_count=-1,
             require_session=True,
@@ -48,7 +48,7 @@ class AdminService:
     def quality_log(login: str):
         db = DatabaseController()
         return db.execute(
-            "SELECT * FROM admin.quality_log_view ORDER BY created_at DESC",
+            "SELECT * FROM admin.quality_log_view ORDER BY test_date DESC",
             executor_username=login,
             fetch_count=-1,
             require_session=True,

@@ -31,9 +31,14 @@ class AuthService:
 
 class AdminService:
     @staticmethod
-    def create_user(data: AdminCreateUserSchema):
+    def create_user(executor_login: str, data: AdminCreateUserSchema):
         db = DatabaseController()
-        db.connect()
         query = "CALL admin.register_user(%s, %s, %s, %s, %s, %s, %s::public.user_role_type)"
         params = [data.login, data.password, data.email, data.phone, data.first_name, data.last_name, data.role]
-        return db.execute(query, params=params, fetch_count=0)
+        return db.execute(
+            query,
+            params=params,
+            fetch_count=0,
+            executor_username=executor_login,
+            require_session=True,
+        )

@@ -22,7 +22,9 @@ async def users(user: TokenDataSchema = Depends(require_roles("admin"))):
 
 @router.post("/users")
 async def create_user(data: AdminCreateUserSchema, user: TokenDataSchema = Depends(require_roles("admin"))):
-    result = AdminUsersService.create_user(data)
+    result = AdminUsersService.create_user(user.login, data)
+    if isinstance(result, RuntimeError):
+        raise HTTPException(status_code=401, detail=str(result))
     if isinstance(result, Exception):
         raise HTTPException(status_code=400, detail=str(result))
     return {"detail": "created"}

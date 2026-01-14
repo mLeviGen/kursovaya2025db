@@ -98,15 +98,19 @@ REVOKE ALL ON SCHEMA "public" FROM PUBLIC; -- Даже на public забира�
 -- Admin
 GRANT USAGE ON SCHEMA "admin" TO "admin";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA "admin" TO "admin";
+GRANT EXECUTE ON ALL PROCEDURES IN SCHEMA "admin" TO "admin";
 -- Client
 GRANT USAGE ON SCHEMA "authorized" TO "admin", "client";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA "authorized" TO "admin", "client";
+GRANT EXECUTE ON ALL PROCEDURES IN SCHEMA "authorized" TO "admin", "client";
 -- Employee
 GRANT USAGE ON SCHEMA "workers" TO "admin", "employee";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA "workers" TO "admin", "employee";
+GRANT EXECUTE ON ALL PROCEDURES IN SCHEMA "workers" TO "admin", "employee";
 -- Public (доступно всем авторизованным ролям)
 GRANT USAGE ON SCHEMA "public" TO "guest", "client", "employee", "admin";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA "public" TO "guest", "client", "employee", "admin";
+GRANT EXECUTE ON ALL PROCEDURES IN SCHEMA "public" TO "guest", "client", "employee", "admin";
 -- Гранты по умолчанию для объектов, которые будут создаваться позже (иначе приходится GRANT'ить каждый раз руками)
 -- NOTE: подразумевается, что все объекты создаёт владелец БД/схем (обычно postgres).
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA admin REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;

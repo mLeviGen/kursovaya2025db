@@ -3,7 +3,8 @@ from pydantic import BaseModel, Field
 
 
 class OrderItemIn(BaseModel):
-    product: str = Field(min_length=1, max_length=128)
+    # Use stable product_id instead of product name (avoids typos / ambiguity).
+    product_id: int = Field(gt=0)
     qty: int = Field(gt=0)
 
 

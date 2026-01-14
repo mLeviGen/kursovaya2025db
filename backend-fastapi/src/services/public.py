@@ -14,4 +14,4 @@ class PublicService:
     def get_batches():
         db = DatabaseController()
         db.connect()
-        return db.execute("SELECT * FROM public.batches_view ORDER BY prod_date DESC, code", fetch_count=-1)
+        return db.execute("SELECT * FROM public.batches_public_view ORDER BY prod_date DESC, code", fetch_count=-1)

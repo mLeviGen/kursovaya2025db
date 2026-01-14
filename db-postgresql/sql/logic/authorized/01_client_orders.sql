@@ -9,9 +9,9 @@ DECLARE
     v_client_id BIGINT;
     v_order_id BIGINT;
     v_item JSONB;
-    v_product_name VARCHAR;
     v_qty INT;
     v_product_id INT;
+    v_product_name VARCHAR;
 BEGIN
     v_client_id := public.get_my_id();
 
@@ -21,12 +21,35 @@ BEGIN
 
     FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
     LOOP
-        v_product_name := v_item->>'product';
         v_qty := (v_item->>'qty')::INT;
 
-        SELECT id INTO v_product_id FROM private.product WHERE name = v_product_name;
-        IF v_product_id IS NULL THEN
-            RAISE EXCEPTION 'Product not found: %', v_product_name;
+        -- Preferred: product_id (stable, no typos). Backward-compatible: product name.
+        v_product_id := NULL;
+        IF (v_item ? 'product_id') THEN
+            v_product_id := NULLIF(v_item->>'product_id', '')::INT;
+        END IF;
+
+        IF v_product_id IS NOT NULL THEN
+            -- Ensure product exists and is active.
+            PERFORM 1 FROM private.product p WHERE p.id = v_product_id AND p.is_active = TRUE;
+            IF NOT FOUND THEN
+                RAISE EXCEPTION 'Product not found or inactive: %', v_product_id;
+            END IF;
+        ELSE
+            v_product_name := v_item->>'product';
+            IF v_product_name IS NULL OR length(btrim(v_product_name)) = 0 THEN
+                RAISE EXCEPTION 'Order item must include product_id (preferred) or product name';
+            END IF;
+
+            SELECT p.id
+            INTO v_product_id
+            FROM private.product p
+            WHERE p.name = v_product_name
+              AND p.is_active = TRUE;
+
+            IF v_product_id IS NULL THEN
+                RAISE EXCEPTION 'Product not found or inactive: %', v_product_name;
+            END IF;
         END IF;
 
         INSERT INTO private.order_item (order_id, product_id, qty)
@@ -85,7 +108,14 @@ BEGIN
         o.total_price, 
         o.created_at,
         COALESCE(
-            jsonb_agg(jsonb_build_object('product', p.name, 'qty', oi.qty, 'price', oi.unit_price))
+            jsonb_agg(
+                jsonb_build_object(
+                    'product_id', p.id,
+                    'product', p.name,
+                    'qty', oi.qty,
+                    'price', oi.unit_price
+                )
+            )
             FILTER (WHERE oi.order_id IS NOT NULL),
             '[]'::jsonb
         )

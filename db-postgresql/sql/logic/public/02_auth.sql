@@ -38,13 +38,17 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION public.get_my_id() 
 RETURNS BIGINT 
 SECURITY DEFINER 
-STABLE AS $$
+STABLE
+SET search_path = private, public
+AS $$
 DECLARE
     v_id BIGINT;
 BEGIN
     SELECT id INTO v_id 
     FROM private.users 
-    WHERE login = CURRENT_USER;
+    -- NOTE: CURRENT_USER inside SECURITY DEFINER may become the *definer*.
+    -- We need the authenticated session login.
+    WHERE login = SESSION_USER;
     
     RETURN v_id;
 END;
@@ -57,11 +61,14 @@ RETURNS TABLE(
     first_name VARCHAR, 
     last_name VARCHAR, 
     role public.user_role_type
-) SECURITY DEFINER STABLE AS $$
+) SECURITY DEFINER
+STABLE
+SET search_path = private, public
+AS $$
 BEGIN
     RETURN QUERY
     SELECT u.id, u.login, u.first_name, u.last_name, u.role
     FROM private.users u
-    WHERE u.login = CURRENT_USER;
+    WHERE u.login = SESSION_USER;
 END;
 $$ LANGUAGE plpgsql;

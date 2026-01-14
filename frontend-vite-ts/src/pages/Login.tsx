@@ -1,75 +1,87 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
-export default function Login() {
+export default function Login({ mode }: { mode: "client" | "staff" }) {
   const nav = useNavigate();
-  const { login, setToken } = useAuth();
+  const { login, me, logout } = useAuth();
 
-  const [mode, setMode] = useState<"login" | "paste">("paste");
-  const [username, setUsername] = useState("admin");
+  const title = mode === "staff" ? "Вход в панель" : "Вход клиента";
+
+  const allowedRoles = useMemo(() => {
+    return mode === "staff"
+      ? new Set(["technologist", "inspector", "manager", "admin"])
+      : new Set(["client", "admin"]);
+  }, [mode]);
+
+  const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
-  const [token, setTokenText] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErr(null);
-
     try {
-      if (mode === "paste") {
-        if (!token.trim()) throw new Error("Paste JWT token");
-        setToken(token.trim());
-      } else {
-        await login(username, password);
+      setIsSubmitting(true);
+      setErr(null);
+      const freshMe = await login(loginValue, password);
+      const role = (freshMe?.role ?? "").toString();
+      if (!allowedRoles.has(role)) {
+        await logout();
+        setErr(
+          mode === "staff"
+            ? `Роль “${role}” не имеет доступа к админке.`
+            : `Роль “${role}” не может входить как клиент.`
+        );
+        return;
       }
-      nav("/");
+
+      nav(mode === "staff" ? "/admin" : "/", { replace: true });
     } catch (e: any) {
-      setErr(e?.message ?? String(e));
+      setErr(e?.response?.data?.detail ?? e?.message ?? String(e));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="container">
-      <h2>Login</h2>
-
-      <div className="tabs">
-        <button className={mode === "paste" ? "active" : ""} onClick={() => setMode("paste")}>
-          Paste JWT
-        </button>
-        <button className={mode === "login" ? "active" : ""} onClick={() => setMode("login")}>
-          Username/Password
-        </button>
+    <div>
+      <div className="pageTitle">
+        <h1>{title}</h1>
+        <div className="sub">
+          {mode === "staff" ? "Только для сотрудников" : "Для оформления заказов"}
+        </div>
       </div>
 
-      <form onSubmit={onSubmit} className="card">
-        {mode === "login" ? (
-          <>
+      <div className="card">
+        <form onSubmit={onSubmit}>
+          <div className="row">
             <label>
-              Username
-              <input value={username} onChange={(e) => setUsername(e.target.value)} />
+              Логин
+              <input value={loginValue} onChange={(e) => setLoginValue(e.target.value)} autoComplete="username" />
             </label>
             <label>
-              Password
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              Пароль
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
             </label>
-            <p className="hint">
-              Требует backend endpoint <code>/api/auth/login</code>. Пока можно использовать вкладку “Paste JWT”.
-            </p>
-          </>
-        ) : (
-          <>
-            <label>
-              JWT token
-              <textarea rows={4} value={token} onChange={(e) => setTokenText(e.target.value)} />
-            </label>
-            <p className="hint">Пока backend не делает реальную аутентификацию — вставь любой токен (хоть “dev”).</p>
-          </>
-        )}
+            <button type="submit" disabled={isSubmitting || !loginValue || !password}>Войти</button>
+          </div>
+        </form>
 
         {err && <div className="error">{err}</div>}
-        <button type="submit">Enter</button>
-      </form>
+
+        <div className="hint" style={{ marginTop: 10 }}>
+          {mode === "staff" ? (
+            <>
+              Клиентский сайт: <Link to="/">/</Link> • Клиентский вход: <Link to="/login">/login</Link> • Регистрация клиента: <Link to="/register">/register</Link>
+            </>
+          ) : (
+            <>
+              Нет аккаунта? <Link to="/register">Регистрация</Link> • Вход персонала: <Link to="/admin/login">/admin/login</Link>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

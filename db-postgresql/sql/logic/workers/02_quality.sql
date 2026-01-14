@@ -71,7 +71,20 @@ CREATE OR REPLACE FUNCTION workers.get_quality_tests(
 SECURITY DEFINER
 SET search_path = private, public, workers
 AS $$
+DECLARE
+    v_user_id BIGINT;
+    v_role public.user_role_type;
 BEGIN
+    v_user_id := public.get_my_id();
+    SELECT role INTO v_role FROM private.users WHERE id = v_user_id;
+
+    -- Просмотр тестов качества:
+    -- * инспектор/админ — полные права
+    -- * технолог/менеджер — просмотр (нужно для контроля производства/отгрузок)
+    IF v_role NOT IN ('inspector', 'technologist', 'manager', 'admin') THEN
+        RAISE EXCEPTION 'Access denied';
+    END IF;
+
     RETURN QUERY
     SELECT
         qt.id,

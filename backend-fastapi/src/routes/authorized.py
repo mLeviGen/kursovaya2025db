@@ -22,7 +22,7 @@ async def my_orders(user: TokenDataSchema = Depends(require_roles("client", "adm
 
 @router.post("/orders")
 async def make_order(data: CreateOrderSchema, user: TokenDataSchema = Depends(require_roles("client", "admin"))):
-    items = [{"product": i.product, "qty": i.qty} for i in data.items]
+    items = [{"product_id": i.product_id, "qty": i.qty} for i in data.items]
     result = AuthorizedService.make_order(user.login, items=items, comments=data.comments)
     if isinstance(result, RuntimeError):
         raise HTTPException(status_code=401, detail=str(result))

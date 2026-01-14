@@ -7,6 +7,7 @@ from src.schemas.worker import (
     CreateBatchSchema,
     RecordQualityTestSchema,
     SetBatchStatusSchema,
+    UpdateSupplyTermsSchema,
     UpsertSupplySchema,
 )
 from src.dependencies.has_role import require_roles
@@ -16,7 +17,7 @@ router = APIRouter(prefix="/worker", tags=["worker"])
 
 
 @router.get("/orders")
-async def orders(user: TokenDataSchema = Depends(require_roles("technologist", "inspector", "manager", "admin"))):
+async def orders(user: TokenDataSchema = Depends(require_roles("manager", "admin"))):
     result = WorkerService.get_orders(user.login)
     if isinstance(result, RuntimeError):
         raise HTTPException(status_code=401, detail=str(result))
@@ -83,7 +84,7 @@ async def record_quality_test(data: RecordQualityTestSchema, user: TokenDataSche
 
 
 @router.get("/quality-tests/{batch_code}")
-async def quality_tests(batch_code: str, user: TokenDataSchema = Depends(require_roles("inspector", "manager", "admin"))):
+async def quality_tests(batch_code: str, user: TokenDataSchema = Depends(require_roles("inspector", "technologist", "manager", "admin"))):
     result = WorkerService.get_quality_tests(user.login, batch_code)
     if isinstance(result, RuntimeError):
         raise HTTPException(status_code=401, detail=str(result))
@@ -103,12 +104,31 @@ async def supplies(user: TokenDataSchema = Depends(require_roles("technologist",
 
 
 @router.post("/supplies")
-async def upsert_supply(data: UpsertSupplySchema, user: TokenDataSchema = Depends(require_roles("technologist", "manager", "admin"))):
+async def upsert_supply(data: UpsertSupplySchema, user: TokenDataSchema = Depends(require_roles("technologist", "admin"))):
     result = WorkerService.upsert_supply(
         user.login,
         supplier_name=data.supplier_name,
         raw_material_name=data.raw_material_name,
         unit=data.unit,
+        cost_numeric=data.cost_numeric,
+        lead_time_days=data.lead_time_days,
+    )
+    if isinstance(result, RuntimeError):
+        raise HTTPException(status_code=401, detail=str(result))
+    if isinstance(result, Exception):
+        raise HTTPException(status_code=400, detail=str(result))
+    return result
+
+
+@router.patch("/supplies/{supply_id}")
+async def update_supply_terms(
+    supply_id: int,
+    data: UpdateSupplyTermsSchema,
+    user: TokenDataSchema = Depends(require_roles("manager", "technologist", "admin")),
+):
+    result = WorkerService.update_supply_terms(
+        user.login,
+        supply_id=supply_id,
         cost_numeric=data.cost_numeric,
         lead_time_days=data.lead_time_days,
     )
